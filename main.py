@@ -5,7 +5,10 @@ from typing import Final
 from classes.Buff import Buff
 from classes.User import User
 from telebot import types, util
+from sqlalchemy.orm import Session
+from connect import engine
 
+session = Session(bind=engine)
 load_dotenv()
 
 BOT_API: Final = os.getenv("BOT_API")
