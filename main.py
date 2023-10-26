@@ -419,16 +419,20 @@ def callback_line(call):
                     chat_id=call.message.chat.id, message_id=call.message.message_id, text=formatted_str, reply_markup=InlineMarkup3)
 
         elif call.data == "investments":
-            txt = f"Your current {callback_args['init'].upper()} watchlist"
             if callback_args['init'] == 'buff':
-                return
+                curInvestments = USER.get_buff_investments(
+                    callback_args['userid'])
+                print("Cur: ", curInvestments)
+                formatted_str = format_investments(curInvestments, "BUFF")
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=formatted_str, reply_markup=InlineMarkup3)
 
         elif call.data == "exit":
             global LEAVE_CALLBACK_TEXT
             del callback_args['init']
             del callback_args['prev_call']
-            bot.edit_message_text(
-                chat_id=call.message.chat.id, message_id=call.message.message_id, text=LEAVE_CALLBACK_TEXT)
+            bot.send_message(chat_id=call.message.chat.id,
+                             text=LEAVE_CALLBACK_TEXT)
 
 
 ####################################################
