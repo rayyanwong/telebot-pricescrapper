@@ -7,12 +7,14 @@ from classes.User import User
 from telebot import types, util
 from sqlalchemy.orm import Session
 from connect import engine
+from models import UserDB
 
 session = Session(bind=engine)
 load_dotenv()
 
 BOT_API: Final = os.getenv("BOT_API")
 BUFF_USER: Buff = Buff()
+USER: User = User()
 
 bot = tb.TeleBot(BOT_API, parse_mode=None)
 
@@ -30,13 +32,35 @@ def buff_print_datalist(data_lst):
     return output
 
 
-USER = User(None)
+def check_if_user_exists(userid):
+    res = session.query(UserDB).where(UserDB.userid == userid).all()
+    if (len(res) == 0):
+        return False
+    return True
+
+
+def insert_new_user(userid):
+    if not check_if_user_exists(userid):
+        try:
+            user_insertobj = UserDB(
+                userid=userid,
+                buff_watchlist=[],
+                buff_investments=[],
+                stock_watchlist=[],
+                stock_investments=[],
+            )
+            session.add(user_insertobj)
+            session.commit()
+            print(f"Successfully added userid: {userid} into the database!")
+        except Exception as e:
+            print(f"Inserting of userid: {userid} into database has failed!")
+    else:
+        print(f"User of userid: {userid} already exists in the database!")
 
 
 @bot.message_handler(commands=['start'])
 def bot_start(message):
-    global USER
-    USER = User(message.chat.id)
+    insert_new_user(message.chat.id)
     bot.reply_to(message=message, text="Waddup waddup?!")
 
 
@@ -75,7 +99,7 @@ def bot_handle_buff_query(message):
         bot.register_next_step_handler(msg, bprocess_search_by_handler, args)
 
     elif (message.text == "Get Watchlist"):
-        curWatchlist = USER.get_buff_watchlist()
+        curWatchlist = USER.get_buff_watchlist(userid)
         print(curWatchlist)
         return
 
@@ -173,7 +197,7 @@ def bprocess_get_result_handler(message, args: object):
     }
     print("Item Object is: ", itemObj)
     if (message.text == "⭐ Add to BUFF watchlist"):
-        USER.buff_watchlist_add(itemObj)
+        USER.buff_watchlist_add(userid, itemObj)
         bot.send_message(
             userid, "BUFF Watchlist has been updated. Select '/buff' -> 'Get Watchlist' to view your BUFF Watchlist")
 
