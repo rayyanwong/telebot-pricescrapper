@@ -138,19 +138,19 @@ def format_investments(arr: list[object], typeOfInvesments: str) -> str:
 exitMarkupButton = types.InlineKeyboardButton(
     text="Exit", callback_data="exit"
 )
-InlineMarkup1 = types.InlineKeyboardMarkup()
+InlineMarkup1 = types.InlineKeyboardMarkup(row_width=1)
 m1_btn1 = types.InlineKeyboardButton(text="🕹️ Buff", callback_data="buff")
 m2_btn2 = types.InlineKeyboardButton(text="📊 Stocks", callback_data="stocks")
 InlineMarkup1.add(m1_btn1, m2_btn2, exitMarkupButton)
 
-InlineMarkup2 = types.InlineKeyboardMarkup()
+InlineMarkup2 = types.InlineKeyboardMarkup(row_width=1)
 m2_btn1 = types.InlineKeyboardButton(
     text="📝 View Watchlist", callback_data="watchlist")
 m2_btn2 = types.InlineKeyboardButton(
     text="📈 View Investments", callback_data="investments")
 InlineMarkup2.add(m2_btn1, m2_btn2, exitMarkupButton)
 
-InlineMarkup3 = types.InlineKeyboardMarkup()
+InlineMarkup3 = types.InlineKeyboardMarkup(row_width=1)
 m3_btn1 = types.InlineKeyboardButton(
     text="➕ Add item", callback_data="add_item")
 m3_btn2 = types.InlineKeyboardButton(
