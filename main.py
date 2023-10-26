@@ -254,7 +254,7 @@ def bprocess_get_result_handler(message, args: object):
         bot.send_message(userid, "Exiting BUFF service...")
 
     else:
-        pass
+        return
 
 
 def process_add_to_investment_buyprice(message, args: object):
@@ -273,7 +273,7 @@ def process_add_to_investment_buyprice(message, args: object):
         msg = bot.send_message(
             userid, f"Error! Please enter a valid quantity!")
         bot.register_next_step_handler(
-            msg, bprocess_get_result_handler, args)
+            msg, process_add_to_investment_buyprice, args)
 
 
 def process_add_to_investment_final(message, args: object):
@@ -293,7 +293,7 @@ def process_add_to_investment_final(message, args: object):
     except Exception as e:
         msg = bot.send_message(userid, f'Error! Please enter a valid price!')
         bot.register_next_step_handler(
-            msg, process_add_to_investment_buyprice, args)
+            msg, process_add_to_investment_final, args)
 
 
 ####################################################
