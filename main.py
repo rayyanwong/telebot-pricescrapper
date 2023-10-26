@@ -8,6 +8,10 @@ from telebot import types, util
 from sqlalchemy.orm import Session
 from connect import engine
 from models import UserDB
+import logging
+
+# logger = tb.logger
+# tb.logger.setLevel(logging.DEBUG)
 
 
 #################### INITIALISATION #############################
@@ -27,6 +31,13 @@ with open('./utils/buffids.txt', "r", encoding="utf-8") as f:
     for l in raw:
         BUFF_DATA.append(l.strip().split(';'))
 
+callback_args = {
+    "userid": None,
+    "init": None,
+    "prev_call": None
+}
+
+LEAVE_CALLBACK_TEXT = "You have exitted /view!\n\nTo explore BUFF items, type /buff!\nTo explore STOCK items, type /stock\n\nIf you have any enquiries or faced any issues, please raise it up on the github repository: https://github.com/rayyanwong/telebot-pricescrapper/ "
 ################ HELPER FUNCTIONS ###############################
 
 
@@ -94,17 +105,20 @@ def format_watchlist(arr: list[object], typeOfWatchlist: str):
 # allow user to remove item or delete completely
 
 
+exitMarkupButton = types.InlineKeyboardButton(
+    text="Exit", callback_data="exit"
+)
 InlineMarkup1 = types.InlineKeyboardMarkup()
 m1_btn1 = types.InlineKeyboardButton(text="🕹️ Buff", callback_data="buff")
 m2_btn2 = types.InlineKeyboardButton(text="📊 Stocks", callback_data="stocks")
-InlineMarkup1.add(m1_btn1, m2_btn2)
+InlineMarkup1.add(m1_btn1, m2_btn2, exitMarkupButton)
 
 InlineMarkup2 = types.InlineKeyboardMarkup()
 m2_btn1 = types.InlineKeyboardButton(
     text="📝 View Watchlist", callback_data="watchlist")
 m2_btn2 = types.InlineKeyboardButton(
     text="📈 View Investments", callback_data="investments")
-InlineMarkup2.add(m2_btn1, m2_btn2)
+InlineMarkup2.add(m2_btn1, m2_btn2, exitMarkupButton)
 
 InlineMarkup3 = types.InlineKeyboardMarkup()
 m3_btn1 = types.InlineKeyboardButton(
@@ -113,7 +127,8 @@ m3_btn2 = types.InlineKeyboardButton(
     text="❌ Remove item", callback_data="remove_item")
 m3_btn3 = types.InlineKeyboardButton(
     text="🗑️ Delete List", callback_data="delete_list")
-InlineMarkup3.add(m3_btn1, m3_btn2, m3_btn3)
+
+InlineMarkup3.add(m3_btn1, m3_btn2, m3_btn3, exitMarkupButton)
 
 ################## BOT HANDLERS ###############################
 
@@ -321,6 +336,48 @@ def process_add_to_investment_final(message, args: object):
         msg = bot.send_message(userid, f'Error! Please enter a valid price!')
         bot.register_next_step_handler(
             msg, process_add_to_investment_final, args)
+
+
+@bot.message_handler(commands=['view'])
+def callback_handler(message):
+    global InlineMarkup1
+    keyboard = InlineMarkup1
+    bot.send_message(message.chat.id, "Testing callback",
+                     reply_markup=keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_line(call):
+    global InlineMarkup2
+    global InlineMarkup3
+    global callback_args
+    if call.message:
+        callback_args["userid"] = call.message.chat.id
+        print("Call is: ", call.data)
+        if call.data == "buff":
+            callback_args["init"] = "buff"
+            # get buff data and formatted text for output
+            bot.edit_message_text(
+                chat_id=call.message.chat.id, message_id=call.message.message_id, text="Which would you like to view?", reply_markup=InlineMarkup2)
+        elif call.data == "stocks":
+            callback_args["init"] = "stocks"
+            # get stocks data and formatted text for output
+            bot.edit_message_text(chat_id=call.message.chat.id,
+                                  message_id=call.message.message_id, text="stocks")
+        elif call.data == "watchlist":
+            txt = f"Your current {callback_args['init'].upper()} watchlist"
+            # get watchlist from class
+            if callback_args['init'] == 'buff':
+                curWatchlist = USER.get_buff_watchlist(callback_args["userid"])
+                curWatchlist = get_items_withPricesArr(curWatchlist)
+                formatted_str = format_watchlist(curWatchlist, "BUFF")
+                formatted_str += "\nWhat would you like to do?\n\n"
+                bot.edit_message_text(
+                    chat_id=call.message.chat.id, message_id=call.message.message_id, text=formatted_str, reply_markup=InlineMarkup3)
+        elif call.data == "exit":
+            global LEAVE_CALLBACK_TEXT
+            bot.edit_message_text(
+                chat_id=call.message.chat.id, message_id=call.message.message_id, text=LEAVE_CALLBACK_TEXT)
 
 
 ####################################################
