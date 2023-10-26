@@ -211,6 +211,7 @@ def bprocess_search_by_handler(message, args: object):
             bot.send_message(
                 userid, "Error has occured! Please contact admin!")
     args["data_obj"] = ret
+    # ret = {'itemname', 'itemid', 'price'}
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=1)
     markup.add("⭐ Add to BUFF watchlist",
                "💰 Add to Investments list",
@@ -237,20 +238,62 @@ def bprocess_get_result_handler(message, args: object):
             userid, "BUFF Watchlist has been updated. Select '/buff' -> 'Get Watchlist' to view your BUFF Watchlist")
 
     elif (message.text == "💰 Add to Investments list"):
-        USER.buff_investment_add(itemObj)
-        bot.send_message(
-            userid, "BUFF Investments has been updated. Select '/buff' -> 'Get Investments' to view your BUFF Investments")
+        msg = bot.send_message(
+            userid, f"Please enter the quantity bought for {itemObj['itemname']}")
+        bot.register_next_step_handler(
+            msg, process_add_to_investment_buyprice, args)
 
     elif (message.text == "🔍 Search for another item"):
+        del args["data_obj"]
         msg = bot.send_message(
             userid, "You have selected search for another item...")
         bot.register_next_step_handler(msg, bprocess_search_by_handler, args)
 
     elif (message.text == "👋 Exit"):
+        del args["data_obj"]
         bot.send_message(userid, "Exiting BUFF service...")
 
     else:
         pass
+
+
+def process_add_to_investment_buyprice(message, args: object):
+    userid = args["userid"]
+    data_obj = args['data_obj']
+
+    try:
+        quantity = int(message.text)
+        data_obj["quantity"] = quantity
+        args["data_obj"] = data_obj
+        msg = bot.send_message(
+            userid, f"Please enter the buy price per item for {data_obj['itemname']}")
+        bot.register_next_step_handler(
+            msg, process_add_to_investment_final, args)
+    except Exception as e:
+        msg = bot.send_message(
+            userid, f"Error! Please enter a valid quantity!")
+        bot.register_next_step_handler(
+            msg, bprocess_get_result_handler, args)
+
+
+def process_add_to_investment_final(message, args: object):
+    userid = args["userid"]
+    data_obj = args['data_obj']
+
+    try:
+        buyprice = float(message.text)
+        data_obj["buyprice"] = buyprice
+        totalcost = round(buyprice*data_obj["quantity"], 2)
+        data_obj["totalcost"] = totalcost
+        args["data_obj"] = data_obj
+        USER.buff_investments_add(userid=userid, item=data_obj)
+        bot.send_message(
+            userid, f"✅ You have successfully added {data_obj['itemname']} into your portfolio\n\nTo view your investments, type /view or /buff -> View Investments!\n")
+        return
+    except Exception as e:
+        msg = bot.send_message(userid, f'Error! Please enter a valid price!')
+        bot.register_next_step_handler(
+            msg, process_add_to_investment_buyprice, args)
 
 
 ####################################################
