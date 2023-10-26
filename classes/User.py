@@ -127,3 +127,19 @@ class User:
             session.commit()
         except Exception as e:
             errormsg("buff_investments_remove")
+
+    def buff_investments_deletelist(self, userid: int):
+        try:
+            session.execute(update(UserDB).where(
+                UserDB.userid == userid).values(buff_investments=[]))
+            session.commit()
+        except Exception as e:
+            errormsg("buff_investments_deletelist")
+
+    def buff_watchlist_deletelist(self, userid: int):
+        try:
+            session.execute(update(UserDB).where(
+                UserDB.userid == userid).values(buff_watclist=[]))
+            session.commit()
+        except Exception as e:
+            errormsg("buff_watchlist_deletelist")

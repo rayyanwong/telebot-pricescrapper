@@ -152,11 +152,11 @@ InlineMarkup2.add(m2_btn1, m2_btn2, exitMarkupButton)
 
 InlineMarkup3 = types.InlineKeyboardMarkup(row_width=1)
 m3_btn1 = types.InlineKeyboardButton(
-    text="➕ Add item", callback_data="add_item")
+    text="➕ Add item", callback_data="additem")
 m3_btn2 = types.InlineKeyboardButton(
-    text="❌ Remove item", callback_data="remove_item")
+    text="❌ Remove item", callback_data="removeitem")
 m3_btn3 = types.InlineKeyboardButton(
-    text="🗑️ Delete List", callback_data="delete_list")
+    text="🗑️ Delete List", callback_data="deletelist")
 
 InlineMarkup3.add(m3_btn1, m3_btn2, m3_btn3, exitMarkupButton)
 
@@ -431,6 +431,9 @@ def callback_line(call):
             global LEAVE_CALLBACK_TEXT
             bot.send_message(chat_id=call.message.chat.id,
                              text=LEAVE_CALLBACK_TEXT)
+
+        elif call.data == "additem":
+            return
 
 
 ####################################################
