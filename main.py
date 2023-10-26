@@ -35,7 +35,8 @@ with open('./utils/buffids.txt', "r", encoding="utf-8") as f:
 callback_args = {
     "userid": None,
     "init": None,
-    "prev_call": None
+    "prev_call": None,
+    "list": None,
 }
 
 LEAVE_CALLBACK_TEXT = "You have exitted /view!\n\nTo explore BUFF items, type /buff!\nTo explore STOCK items, type /stock\n\nIf you have any enquiries or faced any issues, please raise it up on the github repository: https://github.com/rayyanwong/telebot-pricescrapper/ "
@@ -382,7 +383,7 @@ def process_add_to_investment_final(message, args: object):
 def callback_handler(message):
     global InlineMarkup1
     keyboard = InlineMarkup1
-    bot.send_message(message.chat.id, "Testing callback",
+    bot.send_message(message.chat.id, "Welcome to /view,\n\nThis function is designed to allow you to manage your Buff/Stock Watchlists and Investments. \n\n To proceed, choose which service you would like to access!",
                      reply_markup=keyboard)
 
 
@@ -433,6 +434,8 @@ def callback_line(call):
                              text=LEAVE_CALLBACK_TEXT)
 
         elif call.data == "additem":
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                  text=f"To add a new item, please type /{callback_args['init']} -> Find item you would like to add\n -> Add to your Watchlist or Portfolio\n\nIf you encounter any problems or have any enquiries, visit the github repository: https://github.com/rayyanwong/telebot-pricescrapper/ to raise an issue.\n\n Thank you!")
             return
 
 
