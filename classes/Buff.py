@@ -58,3 +58,14 @@ class Buff:
             "price": price
         }
         return ret
+
+    def getBuyPriceById(self, itemid) -> float:
+        try:
+            URL = "https://buff.163.com/api/market/goods/buy_order?game=csgo&goods_id="
+            r = requests.get(URL+str(itemid))
+            items = r.json()
+            data = items["data"]["items"][0]
+            price = float(data['price'])
+            return price
+        except Exception as e:
+            return None
