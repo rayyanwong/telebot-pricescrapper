@@ -415,7 +415,6 @@ def callback_line(call):
                 curWatchlist = USER.get_buff_watchlist(callback_args["userid"])
                 curWatchlist = get_items_withPricesArr(curWatchlist)
                 formatted_str = format_watchlist(curWatchlist, "BUFF")
-                formatted_str += "\nWhat would you like to do?\n\n"
                 bot.edit_message_text(
                     chat_id=call.message.chat.id, message_id=call.message.message_id, text=formatted_str, reply_markup=InlineMarkup3)
 
@@ -436,6 +435,10 @@ def callback_line(call):
         elif call.data == "additem":
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                   text=f"To add a new item, please type /{callback_args['init']} -> Find item you would like to add\n -> Add to your Watchlist or Portfolio\n\nIf you encounter any problems or have any enquiries, visit the github repository: https://github.com/rayyanwong/telebot-pricescrapper/ to raise an issue.\n\n Thank you!")
+            return
+
+        elif call.data == "removeitem":
+            print(call.message.text)
             return
 
 
