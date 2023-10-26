@@ -114,3 +114,16 @@ class User:
             session.commit()
         except Exception as e:
             errormsg("buff_watchlist_remove")
+
+    def buff_investments_remove(self, userid: int, item: object):
+        try:
+            selected = session.query(UserDB).filter_by(userid=userid).first()
+            templist = selected.buff_investments
+            print("Initial: ", templist)
+            templist.remove(item)
+            print("After: ", templist)
+            session.execute(update(UserDB).where(UserDB.userid ==
+                            userid).values(buff_investments=templist))
+            session.commit()
+        except Exception as e:
+            errormsg("buff_investments_remove")
