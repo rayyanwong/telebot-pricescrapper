@@ -39,7 +39,7 @@ class Buff:
                 return "Error 404"
         return "Unable to find item"
 
-    def getPriceById(self, itemid, itemname=""):
+    def getPriceById(self, itemid, itemname="") -> object:
         URL = "https://buff.163.com/api/market/goods/buy_order?game=csgo&goods_id="
         r = requests.get(URL+str(itemid))
         items = r.json()

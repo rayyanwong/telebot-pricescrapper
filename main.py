@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from connect import engine
 from models import UserDB
 
+
+#################### INITIALISATION #############################
+
 session = Session(bind=engine)
 load_dotenv()
 
@@ -23,6 +26,8 @@ with open('./utils/buffids.txt', "r", encoding="utf-8") as f:
     BUFF_DATA = []
     for l in raw:
         BUFF_DATA.append(l.strip().split(';'))
+
+################ HELPER FUNCTIONS ###############################
 
 
 def buff_print_datalist(data_lst):
@@ -57,6 +62,34 @@ def insert_new_user(userid):
     else:
         print(f"User of userid: {userid} already exists in the database!")
 
+
+def get_items_withPricesArr(arr: list[object]) -> list[object]:
+    global BUFF_USER
+    retArr = []
+    for item in arr:
+        # item: {'itemname': __, 'itemid': __}
+        retArr.append(BUFF_USER.getPriceById(
+            itemid=item["itemid"], itemname=item['itemname']))
+    return retArr
+
+
+def format_watchlist(arr: list[object], typeOfWatchlist: str):
+    command = "buff" if typeOfWatchlist.lower() == "buff" else "stocks"
+    ret = f"[    YOUR {typeOfWatchlist} WATCHLIST    ]\n\n\n"
+    count = 1
+    if len(arr) == 0:
+        ret = f"Your {typeOfWatchlist} watchlist is empty!\n\nTo add your {typeOfWatchlist} watchlist, type /view to start adding your first item OR\n/{command} and search for your first item to add!"
+    else:
+        for item in arr:
+            # item: {'itemname': ___ , 'itemid': ____ , 'price': ____ }
+            ret += f'{count}. {item["itemid"]} | {item["itemname"]} \n\tCurrent Price: {item["price"]}\n\n'
+            count += 1
+    return ret
+
+################### MARKUP INIT ##############################
+
+
+################## BOT HANDLERS ###############################
 
 @bot.message_handler(commands=['start'])
 def bot_start(message):
@@ -100,7 +133,9 @@ def bot_handle_buff_query(message):
 
     elif (message.text == "Get Watchlist"):
         curWatchlist = USER.get_buff_watchlist(userid)
-        print(curWatchlist)
+        curWatchlist = get_items_withPricesArr(curWatchlist)
+        formatted_str = format_watchlist(curWatchlist, "BUFF")
+        bot.send_message(userid, formatted_str)
         return
 
     elif (message.text == "Get Investments"):
