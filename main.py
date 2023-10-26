@@ -125,6 +125,7 @@ def format_investments(arr: list[object], typeOfInvesments: str) -> str:
             itemline = firstline+seperatorline+pricingline + \
                 analysisline+percentageline+'\n\n\n'
             ret += itemline
+            count += 1
     return ret
 ################### MARKUP INIT ##############################
 
