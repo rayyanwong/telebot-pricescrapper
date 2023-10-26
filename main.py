@@ -23,6 +23,7 @@ BOT_API: Final = os.getenv("BOT_API")
 BUFF_USER: Buff = Buff()
 USER: User = User()
 
+
 bot = tb.TeleBot(BOT_API, parse_mode=None)
 
 with open('./utils/buffids.txt', "r", encoding="utf-8") as f:
@@ -97,6 +98,34 @@ def format_watchlist(arr: list[object], typeOfWatchlist: str):
             count += 1
     return ret
 
+
+def format_investments(arr: list[object], typeOfInvesments: str) -> str:
+    command = "buff" if typeOfInvesments.lower() == "buff" else "stocks"
+    ret = f"[    YOUR {typeOfInvesments} WATCHLIST    ]\n\n\n"
+    count = 1
+    if len(arr) == 0:
+        ret = f"Your {typeOfInvesments} watchlist is empty!\n\nTo add your {typeOfInvesments} watchlist, type /view to start adding your first item OR\n/{command} and search for your first item to add!"
+    else:
+        for item in arr:
+            # item : {'itemname', 'itemid', 'buyprice', 'totalcost', 'quantity', 'price'}
+            if 'quantity' not in item.keys():
+                item["quantity"] = 1
+            itemCurPricing = round(
+                BUFF_USER.getBuyPriceById(item["itemid"]), 2)
+            afterTaxCurPricing = round(itemCurPricing * 0.975, 2)
+            getDiff = (
+                (afterTaxCurPricing * item["quantity"]) - item['totalcost'])
+            profit = True if getDiff >= 0 else False
+            getPercentageDiff = getDiff/item['totalcost'] * 100
+            firstline = f'{count}. {item["itemid"]} | {item["itemname"]}\n'
+            seperatorline = '-'*len(firstline)*2+'\n'
+            pricingline = f'\tBuy price / quantity: {item["buyprice"]}\t\t|\t\tQuantity bought: {item["quantity"]}\t\t|\t\tTotal spent: {item["totalcost"]}\n\n'
+            analysisline = f'\tCur price / quantity: {itemCurPricing}\t\t|\t\tAmount received after tax / quantity: {afterTaxCurPricing}\t\t|\t\tTotal amount received after tax / all: {afterTaxCurPricing*item["quantity"]}\n\n'
+            percentageline = f'Percentage increased: {round(getPercentageDiff,2)}%' if profit else f'Percentage decreased: {round(getPercentageDiff,2)}%'
+            itemline = firstline+seperatorline+pricingline + \
+                analysisline+percentageline+'\n\n\n'
+            ret += itemline
+    return ret
 ################### MARKUP INIT ##############################
 
 # /view
@@ -137,6 +166,13 @@ InlineMarkup3.add(m3_btn1, m3_btn2, m3_btn3, exitMarkupButton)
 def bot_start(message):
     insert_new_user(message.chat.id)
     bot.reply_to(message=message, text="Waddup waddup?!")
+
+
+@bot.message_handler(commands=['DEBUG'])
+def bot_handle_debug(message):
+    global USER
+    USER.buff_investments_remove(message.chat.id,  {
+                                 'itemid': 43743, 'itemname': '★ StatTrak™ Karambit | Lore (Factory New)', 'price': 20600.0, 'buyprice': 1.0})
 
 
 @bot.message_handler(commands=['buff'])
@@ -181,8 +217,11 @@ def bot_handle_buff_query(message):
         return
 
     elif (message.text == "Get Investments"):
-        msg = bot.send_message(userid, "Get investments")
-        args["choice"] = 4
+        curInvestments = USER.get_buff_investments(userid)
+        print("Cur: ", curInvestments)
+        formatted_str = format_investments(curInvestments, "BUFF")
+        bot.send_message(userid, formatted_str)
+        return
     elif (message.text == "Generate Items List"):
         # allow user to filter by item type
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, row_width=2)
@@ -355,16 +394,19 @@ def callback_line(call):
         callback_args["userid"] = call.message.chat.id
         print("Call is: ", call.data)
         if call.data == "buff":
+            callback_args['prev_call'] = "buff"
             callback_args["init"] = "buff"
             # get buff data and formatted text for output
             bot.edit_message_text(
                 chat_id=call.message.chat.id, message_id=call.message.message_id, text="Which would you like to view?", reply_markup=InlineMarkup2)
         elif call.data == "stocks":
             callback_args["init"] = "stocks"
+            callback_args['prev_call'] = 'stocks'
             # get stocks data and formatted text for output
             bot.edit_message_text(chat_id=call.message.chat.id,
                                   message_id=call.message.message_id, text="stocks")
         elif call.data == "watchlist":
+            callback_args['prev_call'] = 'watchlist'
             txt = f"Your current {callback_args['init'].upper()} watchlist"
             # get watchlist from class
             if callback_args['init'] == 'buff':
@@ -374,8 +416,16 @@ def callback_line(call):
                 formatted_str += "\nWhat would you like to do?\n\n"
                 bot.edit_message_text(
                     chat_id=call.message.chat.id, message_id=call.message.message_id, text=formatted_str, reply_markup=InlineMarkup3)
+
+        elif call.data == "investments":
+            txt = f"Your current {callback_args['init'].upper()} watchlist"
+            if callback_args['init'] == 'buff':
+                return
+
         elif call.data == "exit":
             global LEAVE_CALLBACK_TEXT
+            del callback_args['init']
+            del callback_args['prev_call']
             bot.edit_message_text(
                 chat_id=call.message.chat.id, message_id=call.message.message_id, text=LEAVE_CALLBACK_TEXT)
 
