@@ -101,10 +101,10 @@ def format_watchlist(arr: list[object], typeOfWatchlist: str):
 
 def format_investments(arr: list[object], typeOfInvesments: str) -> str:
     command = "buff" if typeOfInvesments.lower() == "buff" else "stocks"
-    ret = f"[    YOUR {typeOfInvesments} WATCHLIST    ]\n\n\n"
+    ret = f"[    YOUR {typeOfInvesments} PORTFOLIO    ]\n\n\n"
     count = 1
     if len(arr) == 0:
-        ret = f"Your {typeOfInvesments} watchlist is empty!\n\nTo add your {typeOfInvesments} watchlist, type /view to start adding your first item OR\n/{command} and search for your first item to add!"
+        ret = f"Your {typeOfInvesments} portfolio is empty!\n\nTo add your {typeOfInvesments} portfolio, type /view to start adding your first item OR\n/{command} and search for your first item to add!"
     else:
         for item in arr:
             # item : {'itemname', 'itemid', 'buyprice', 'totalcost', 'quantity', 'price'}
