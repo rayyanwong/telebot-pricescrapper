@@ -88,8 +88,35 @@ def format_watchlist(arr: list[object], typeOfWatchlist: str):
 
 ################### MARKUP INIT ##############################
 
+# /view
+# allow user to choose BUFF or STOCKS
+# allow user to choose Watchlist or Investments
+# allow user to remove item or delete completely
+
+
+InlineMarkup1 = types.InlineKeyboardMarkup()
+m1_btn1 = types.InlineKeyboardButton(text="🕹️ Buff", callback_data="buff")
+m2_btn2 = types.InlineKeyboardButton(text="📊 Stocks", callback_data="stocks")
+InlineMarkup1.add(m1_btn1, m2_btn2)
+
+InlineMarkup2 = types.InlineKeyboardMarkup()
+m2_btn1 = types.InlineKeyboardButton(
+    text="📝 View Watchlist", callback_data="watchlist")
+m2_btn2 = types.InlineKeyboardButton(
+    text="📈 View Investments", callback_data="investments")
+InlineMarkup2.add(m2_btn1, m2_btn2)
+
+InlineMarkup3 = types.InlineKeyboardMarkup()
+m3_btn1 = types.InlineKeyboardButton(
+    text="➕ Add item", callback_data="add_item")
+m3_btn2 = types.InlineKeyboardButton(
+    text="❌ Remove item", callback_data="remove_item")
+m3_btn3 = types.InlineKeyboardButton(
+    text="🗑️ Delete List", callback_data="delete_list")
+InlineMarkup3.add(m3_btn1, m3_btn2, m3_btn3)
 
 ################## BOT HANDLERS ###############################
+
 
 @bot.message_handler(commands=['start'])
 def bot_start(message):
